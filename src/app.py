@@ -20,7 +20,7 @@ class AutocompleteView(MethodView):
     # if you set LABEL_MINIMUM to "seven" you're doing it wrong ;-)
     #
 
-    LABEL_MINIMUM = int(os.getenv("LABEL_MINIMUM", 2))
+    LABEL_MINIMUM = int(os.getenv("LABEL_MINIMUM", 3))
     DEFAULT_LIMIT = int(os.getenv("DEFAULT_LIMIT", 5))
     MAXIMUM_LIMIT = int(os.getenv("MAXIMUM_LIMIT", 25))
 
@@ -69,7 +69,7 @@ class AutocompleteView(MethodView):
         # Javascript autocomplete box, an error message is just less useful
         # than an empty list.
 
-        if len(label) < self.LABEL_MINIMUM or not species:
+        if len(label) <= self.LABEL_MINIMUM or not species:
             return self._render([])
 
         suggestions = self.session.query(Gene)\

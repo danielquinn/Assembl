@@ -31,8 +31,8 @@ $ DATABASE_URL="mysql://<user>@<host>/<db-name>" FLASK_APP="src/app.py" flask ru
 Additional variables can be defined in the environment, but `DATABASE_URL` is
 the only one that's required:
 
-Variable Name | Default Value
-------------- | -------------
-LABEL_MINIMUM | 2
-DEFAULT_LIMIT | 5
-MAXIMUM_LIMIT | 25
+Variable Name | Description | Default Value
+------------- | ----------- | -------------
+LABEL_MINIMUM | The minimum number of characters to which the server will attempt to look up.  Fewer characters than this will just return an empty list. | 3
+DEFAULT_LIMIT | The limit of results returned if no `limit=` value was specified. | 5
+MAXIMUM_LIMIT | The highest value we will permit for a user-specified `limit=` value. | 25
