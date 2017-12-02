@@ -8,6 +8,7 @@ from sqlalchemy.orm import sessionmaker
 
 from flask import Flask, request
 from flask.views import MethodView
+from werkzeug.contrib.fixers import ProxyFix
 
 from .models import Gene
 
@@ -124,6 +125,8 @@ class AutocompleteView(MethodView):
 app = Flask(__name__)
 app.add_url_rule(
     "/gene_suggest/", view_func=AutocompleteView.as_view("gene-suggest"))
+
+app.wsgi_app = ProxyFix(app.wsgi_app)
 
 if __name__ == "__main__":
     app.run(debug=True)
