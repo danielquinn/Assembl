@@ -1,3 +1,3 @@
 #!/bin/sh
 
-su app -c "gunicorn --chdir=/app wsgi:app --config /app/gunicorn.py --log-config /app/logging.conf -b :8000"
+su app -c "gunicorn --chdir=/app wsgi:application --config /app/gunicorn.py --log-config /app/logging.conf -b :8000"

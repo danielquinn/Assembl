@@ -2,10 +2,9 @@ from sqlalchemy import Column, String
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import PrimaryKeyConstraint
 
+from .database import db
+
 Base = declarative_base()
-
-
-db_credentials = "mysql://anonymous@ensembldb.ensembl.org/ensembl_website_90"
 
 
 class Gene(Base):
@@ -15,6 +14,8 @@ class Gene(Base):
 
     species = Column(String(255))
     display_label = Column(String(128))
+
+    objects = db  # Look, it's like Django, but less elegant!
 
     def __str__(self):
         return "{}.{}".format(self.species, self.display_label)
