@@ -8,6 +8,7 @@ from sqlalchemy.orm import sessionmaker
 
 from flask import Flask, request
 from flask.views import MethodView
+from werkzeug.contrib.fixers import ProxyFix
 
 from .models import Gene
 
@@ -44,8 +45,13 @@ class AutocompleteView(MethodView):
 
         MethodView.__init__(self)
 
-        engine = create_engine(
-            os.getenv("DATABASE_URL"), encoding="latin1", echo=True)
+        database_url = os.getenv("DATABASE_URL")
+        if not database_url:
+            raise EnvironmentError(
+                "DATABASE_URL must be defined for Assembl to function."
+            )
+
+        engine = create_engine(database_url, encoding="latin1")
         declarative_base().metadata.bind = engine
 
         self.session = sessionmaker(bind=engine)()
@@ -69,7 +75,7 @@ class AutocompleteView(MethodView):
         # Javascript autocomplete box, an error message is just less useful
         # than an empty list.
 
-        if len(label) <= self.LABEL_MINIMUM or not species:
+        if len(label) < self.LABEL_MINIMUM or not species:
             return self._render([])
 
         suggestions = self.session.query(Gene)\
@@ -119,6 +125,8 @@ class AutocompleteView(MethodView):
 app = Flask(__name__)
 app.add_url_rule(
     "/gene_suggest/", view_func=AutocompleteView.as_view("gene-suggest"))
+
+app.wsgi_app = ProxyFix(app.wsgi_app)
 
 if __name__ == "__main__":
     app.run(debug=True)
