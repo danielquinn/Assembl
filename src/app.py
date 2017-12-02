@@ -20,7 +20,7 @@ class AutocompleteView(MethodView):
     # if you set LABEL_MINIMUM to "seven" you're doing it wrong ;-)
     #
 
-    LABEL_MINIMUM = int(os.getenv("LABEL_MINIMUM", 2))
+    LABEL_MINIMUM = int(os.getenv("LABEL_MINIMUM", 3))
     DEFAULT_LIMIT = int(os.getenv("DEFAULT_LIMIT", 5))
     MAXIMUM_LIMIT = int(os.getenv("MAXIMUM_LIMIT", 25))
 
