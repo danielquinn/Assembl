@@ -44,8 +44,13 @@ class AutocompleteView(MethodView):
 
         MethodView.__init__(self)
 
-        engine = create_engine(
-            os.getenv("DATABASE_URL"), encoding="latin1", echo=True)
+        database_url = os.getenv("DATABASE_URL")
+        if not database_url:
+            raise EnvironmentError(
+                "DATABASE_URL must be defined for Assembl to function."
+            )
+
+        engine = create_engine(database_url, encoding="latin1")
         declarative_base().metadata.bind = engine
 
         self.session = sessionmaker(bind=engine)()
