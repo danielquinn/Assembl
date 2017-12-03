@@ -119,3 +119,13 @@ the caching code is run by the Gunicorn launcher.
 For details on how this is being done, have a look at `gunicorn.py` and
 `src/views.py::AutocompleteView::populate_cache`.
 
+## Tests
+
+We're using the typical [pytest](https://docs.pytest.org/en/latest/) and [flake8](http://flake8.pycqa.org/en/latest/)
+inside [tox](https://tox.readthedocs.io/en/latest/), so hopefully you're
+familiar with this setup.  To run all the tests, just do the following whilst
+in the project root:
+
+```bash
+$ tox
+```
