@@ -82,7 +82,7 @@ Check out the docstring for more information:
 > The data in question leans heavily in the direction of "write once, read
 > often".  With this in mind, building a hard cross-internet turn-around time
 > into each call makes little sense.  Indeed as this data is likely to change
-> rarely, keeping a local copy only makes sense.
+> rarely, referencing a local copy is only sensible.
 >
 > What we're doing here is pulling down only the data we need for the
 > suggestions API and storing it in a cache file which is then sourced by
@@ -91,11 +91,11 @@ Check out the docstring for more information:
 > re-populating of the view-level caches.
 >
 > There are more complex alternatives to this model, including simple options
-> like a local Sqlite db, or more complex cross-continental, "eventually
-> consistent" MySQL clustering, but for data that rarely if ever changes,
-> this makes the most sense to me.
+> like a local Sqlite db, a Redis cache, or more complex cross-continental,
+> "eventually consistent" MySQL clustering, but for data that rarely if ever
+> changes, this makes the most sense to me.
 >
-> This nice thing about this system is that you can spin up multiple copies
+> The nice thing about this system is that you can spin up multiple copies
 > of it all over the world, maybe even run it on a service like AWS Lambda,
 > since the local storage is transitory.  Any way you cut it, you never have
 > a bottleneck on your data server and the turn-around is stupid fast.

@@ -37,6 +37,11 @@ class AutocompleteView(MethodView):
         query = self._get_query()
         limit = self._get_limit()
 
+        # I had considered returning a 400 here with an error message, but I
+        # figured that since this is the sort of thing typically used in a
+        # Javascript autocomplete box, an error message is just less useful
+        # than an empty list.
+
         if len(query) < self.LABEL_MINIMUM or not species:
             return self._render([])
 
@@ -86,11 +91,6 @@ class AutocompleteView(MethodView):
         :return:  list  A list of complete labels.
         """
 
-        # I had considered returning a 400 here with an error message, but I
-        # figured that since this is the sort of thing typically used in a
-        # Javascript autocomplete box, an error message is just less useful
-        # than an empty list.
-
         suggestions = Gene.objects.query(Gene)\
             .filter(Gene.species == species)\
             .filter(Gene.display_label.contains(query))\
@@ -109,6 +109,11 @@ class AutocompleteView(MethodView):
         return self._sanitise_input("query")
 
     def _get_limit(self):
+        """
+        Make sure we get a number > 0 and < MAXIMUM_LIMIT.  If not, we return
+        the default.
+        """
+
         try:
             return min(int(request.args.get("limit", "")), self.MAXIMUM_LIMIT)
         except ValueError:
@@ -119,8 +124,8 @@ class AutocompleteView(MethodView):
 
     def _sanitise_input(self, name):
         """
-        Sanitise a parameter for non alphanumerics.  Stuff like ``%`` will just
-        gum things up, and there's really no legit reason for non-ascii's
+        Sanitise a parameter for unexpected characters. Stuff like ``%`` will
+        just gum things up, and there's really no legit reason for these
         anyway.
         """
         return re.sub(r"[^\w]", "", request.args.get(name, ""))
