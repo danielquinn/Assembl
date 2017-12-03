@@ -145,6 +145,12 @@ class AutocompleteView(MethodView):
         and typical of MySQL, a ``LIKE`` query is case insensitive, so the
         query itself can be simpler, but we still have to modify the output for
         uniformity, which seems rather silly.
+
+        Note that I'm making an assumption here based on what I saw in the
+        database: that genes are stored as a series of letters and numbers,
+        occasionally followed by a space and some free-form text, sometimes in
+        parentheses.  I'm also assuming that genes are best represented in all
+        caps (ie. BRCA1), but if there's a space in there, all bets are off.
         """
         bits = label.split(" ", 1)
         bits[0] = bits[0].upper()
