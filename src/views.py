@@ -115,9 +115,14 @@ class AutocompleteView(MethodView):
         """
 
         try:
-            return min(int(request.args.get("limit", "")), self.MAXIMUM_LIMIT)
+            limit = int(request.args.get("limit", ""))
         except ValueError:
             return self.DEFAULT_LIMIT
+
+        if limit < 1:
+            return self.DEFAULT_LIMIT
+
+        return min(limit, self.MAXIMUM_LIMIT)
 
     def _get_species(self):
         return self._sanitise_input("species")
