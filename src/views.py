@@ -134,7 +134,7 @@ class AutocompleteView(MethodView):
         just gum things up, and there's really no legit reason for these
         anyway.
         """
-        return re.sub(r"[^\w]", "", request.args.get(name, ""))
+        return re.sub(r"[^\w ()]", "", request.args.get(name, ""))
 
     @staticmethod
     def _cleanup_label(label):
