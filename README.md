@@ -17,6 +17,7 @@ Install the required dependencies with pip:
 $ pip install -r requirements.txt
 ```
 
+
 ## Configuration
 
 Assembl follows the [12factor](https://12factor.net/) methodology, so it's
@@ -36,6 +37,7 @@ MAXIMUM_LIMIT | no | The highest value we will permit for a user-specified `limi
 In production, you can also configure the Gunicorn server by setting
 environment variables prefixed with `GUNICORN_`.  See the comments in
 `gunicorn.py` for more information.
+
 
 ## Run this Thing
 
@@ -67,6 +69,7 @@ $ docker run --rm -p 8000:8000 \
 The container will start and invoke Assembl with Gunicorn running 16 workers,
 connecting to the database with your credentials.  It will be bound on port
 `8000`, so you'll want to tweak Nginx to point there.
+
 
 ## Scaling
 
@@ -118,6 +121,94 @@ the caching code is run by the Gunicorn launcher.
 
 For details on how this is being done, have a look at `gunicorn.py` and
 `src/views.py::AutocompleteView::populate_cache`.
+
+
+## Deployment
+
+This is such a broad subject and it depends on too many variables to supply
+anything resembling a good answer, but I'll take a crack at it by sorting the
+recommendations from simple to elaborate.
+
+### 1. Simple Setup: Nginx + Docker + Gunicorn, no caching
+
+Maybe your dataserver is super-powerful and you're not concerned at all about
+reducing requests to it, and maybe you'd be hosting this code in the same
+data centre as that database so the turn-around time on database requests would
+be minimal.  In this case, it's perfectly reasonable to have code like this
+setup without caching, though I wouldn't recommend it.
+
+Basically you'd start this up in the Docker container provided and call it a
+day.  Though honestly, if you're going to spin up an entirely separate web
+service to do a job as simple as this, you're basically making work for
+yourself.  If this was your setup, I'd advise you not to use this project at
+all, but to build a REST application into your broader web app.  This way you
+could take advantage of things like a reusable ORM, shared code across the rest
+of the app etc.
+
+### 2. Let's Use Some Caching: Nginx + Docker + Gunicorn with caching
+
+Assuming turn-around on this sort of thing is critical, you'll want to be
+handling all of the requests via a local cache and *not* hitting a database
+with 2million rows in it.  This code will adapt nicely: just setup a server
+somewhere (preferably near your data server) and configure Nginx to sit in
+front of the docker container running Gunicorn just like option #1.  The
+biggest difference here is that you'd set `AGGRESSIVE_CACHING=1` and Assembl
+bear the brunt of your web traffic.  You'd also probably want to build some
+sort of trigger system to re-start the server whenever there's a change to
+these values.
+
+### 3. Smarter Caching: Nginx + Docker + Gunicorn + Cached JSON
+
+The start-up process is **slow** when you enable `AGGRESSIVE_CACHING` and it
+introduces an ugly wait while Assembl queries the database for about 17MB of
+data.  Additionally, your local cache can get stale, necessitating restarts,
+which is messy and brings back that wait time.
+
+A better option would be to setup a webserver that hosts an xz-compressed JSON
+blob like the one ``gunicorn.py`` creates at start time.  Then we'd tweak
+Assembl to grab this file at start up and forego the database altogether.  The
+file would be generated whenever necessary and the Assembl service could be
+restarted as soon as the new file was uploaded.
+
+Some fun stats about this option:
+
+* Total amount of data to be cached (JSON): 17MB
+* Total size of xz-compressed data: 1MB
+* Time to decompress the file: sub-second
+
+### 4. Even Better Caching: Nginx + Docker + Gunicorn + Redis
+
+The thing is, if this data changes more than I assume it does, then option #3
+creates a lot more server restarts and traffic than we want.  In this case, we
+probably want to look at something with a few more moving parts, like a proper
+caching server.
+
+You could setup Redis to store a whole bunch of key/value pairs in the format:
+
+```python
+species: [label, label, label]
+```
+
+Assembl would then drop this whole "cache all the things" in memory mentality
+and instead just reference the redis store, looking up by `species` and
+filtering the value list locally.  The cache would be updated atomically, so
+all Assembl instances would have the latest data and would never require a
+restart.
+
+### 5. Do All The Things: Nginx + Docker + Gunicorn + caching + HA + Geographic Distribution
+
+Say that for some reason, this autocomplete thingy is **super** important and
+its performance is paramount.  We can go all the way on this too:
+
+* Nginx/Docker/Gunicorn instaces setup all over the world
+* Each node consists of no fewer than 3 instances of Assembl and 2 clustered
+  Redis stores
+* You load-balance both sets in each node, and push out updates to the caches
+  from a central service
+* Setup Cloudflare (or a similar system) in front of it all.
+
+I mean, you *could* go this far, but I wouldn't.  Not for this.
+
 
 ## Tests
 
