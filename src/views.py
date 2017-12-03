@@ -127,7 +127,8 @@ class AutocompleteView(MethodView):
     def _get_species(self):
         return self._sanitise_input("species")
 
-    def _sanitise_input(self, name):
+    @staticmethod
+    def _sanitise_input(name):
         """
         Sanitise a parameter for unexpected characters. Stuff like ``%`` will
         just gum things up, and there's really no legit reason for these
@@ -135,7 +136,8 @@ class AutocompleteView(MethodView):
         """
         return re.sub(r"[^\w]", "", request.args.get(name, ""))
 
-    def _cleanup_label(self, label):
+    @staticmethod
+    def _cleanup_label(label):
         """
         One annoying part of this assignment is that I have no control over the
         nature of the data.  If I did, I'd fix it first so that all of the
